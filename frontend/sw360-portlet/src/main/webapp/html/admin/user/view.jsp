@@ -1,6 +1,6 @@
 <%@ page import="org.eclipse.sw360.portal.common.PortalConstants" %>
 <%--
-  ~ Copyright Siemens AG, 2013-2016. Part of the SW360 Portal Project.
+  ~ Copyright Siemens AG, 2013-2017. Part of the SW360 Portal Project.
   ~
   ~ All rights reserved. This program and the accompanying materials
   ~ are made available under the terms of the Eclipse Public License v1.0
@@ -179,12 +179,9 @@
         var tbl;
         if ($(tableId)){
             tbl = $(tableId).dataTable({
-                "sPaginationType": "full_numbers"
+                "pagingType": "simple_numbers",
+                dom: "lrtip"
             });
-
-            $(tableId+'_filter').hide();
-            $(tableId+'_first').hide();
-            $(tableId+'_last').hide();
         }
         return tbl;
     }

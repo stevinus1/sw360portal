@@ -1,5 +1,5 @@
 <%--
-  ~ Copyright Siemens AG, 2013-2016. Part of the SW360 Portal Project.
+  ~ Copyright Siemens AG, 2013-2017. Part of the SW360 Portal Project.
   ~
   ~ All rights reserved. This program and the accompanying materials
   ~ are made available under the terms of the Eclipse Public License v1.0
@@ -122,7 +122,8 @@
         </core_rt:forEach>
 
         vendorsTable = $('#vendorsTable').dataTable({
-            pagingType: "full_numbers",
+            pagingType: "simple_numbers",
+            dom: "lrtip",
             data: result,
             columns: [
                 { "title": "Full Name" },
@@ -131,9 +132,6 @@
                 { "title": "Actions"}
             ]
         });
-        $('#vendorsTable_filter').hide();
-        $('#vendorsTable_first').hide();
-        $('#vendorsTable_last').hide();
     }
 
     function deleteVendor( id, name ) {

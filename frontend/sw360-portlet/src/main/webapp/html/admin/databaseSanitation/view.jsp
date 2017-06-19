@@ -1,5 +1,5 @@
 <%--
-  ~ Copyright Siemens AG, 2013-2015. Part of the SW360 Portal Project.
+  ~ Copyright Siemens AG, 2013-2017. Part of the SW360 Portal Project.
   - With contributions by Bosch Software Innovations GmbH, 2016-2017.
   ~
   ~ All rights reserved. This program and the accompanying materials
@@ -105,12 +105,9 @@
     function setupPagination(tableId) {
         if ($(tableId)) {
             $(tableId).dataTable({
-                "sPaginationType": "full_numbers"
+                "pagingType": "simple_numbers",
+                dom: "lrtip"
             });
-
-            $(tableId + '_filter').hide();
-            $(tableId + '_first').hide();
-            $(tableId + '_last').hide();
         }
     }
 

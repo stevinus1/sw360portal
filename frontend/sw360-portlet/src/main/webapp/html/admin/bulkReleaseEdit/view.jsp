@@ -1,5 +1,5 @@
 <%--
-  ~ Copyright Siemens AG, 2013-2016. Part of the SW360 Portal Project.
+  ~ Copyright Siemens AG, 2013-2017. Part of the SW360 Portal Project.
   ~
   ~ All rights reserved. This program and the accompanying materials
   ~ are made available under the terms of the Eclipse Public License v1.0
@@ -138,21 +138,19 @@
     function configureComponentBasicInfoTable(){
         var tbl;
         tbl = $('#ComponentBasicInfo').dataTable({
-            "sPaginationType": "full_numbers",
+            "pagingType": "simple_numbers",
+            dom: "lrtip",
             "bAutoWidth": false,
-            "aoColumnDefs": [
-                { "sWidth": "13%", "aTargets": [ 0 ] },
-                { "sWidth": "20%", "aTargets": [ 1 ] },
-                { "sWidth": "20%", "aTargets": [ 2 ] },
-                { "sWidth": "20%", "aTargets": [ 3 ] },
-                { "sWidth": "20%", "aTargets": [ 4 ] },
-                { "sWidth": "7%", "aTargets": [ 5 ] }
+            "columnDefs": [
+                { "width": "13%", "targets": [ 0 ] },
+                { "width": "20%", "targets": [ 1 ] },
+                { "width": "20%", "targets": [ 2 ] },
+                { "width": "20%", "targets": [ 3 ] },
+                { "width": "20%", "targets": [ 4 ] },
+                { "width": "7%", "targets": [ 5 ] }
             ]
         });
 
-        $('#ComponentBasicInfo_filter').hide();
-        $('#ComponentBasicInfo_first').hide();
-        $('#ComponentBasicInfo_last').hide();
         return tbl;
     }
 
