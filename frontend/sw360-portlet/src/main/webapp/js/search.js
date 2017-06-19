@@ -32,18 +32,16 @@ function parseList(listString ){
 
 function createSearchTable(data) {
     $('#searchTable').dataTable({
-        "sPaginationType": "full_numbers",
-        "aaData": data,
-        "aoColumns": [
-            { "sTitle": "Type",
+        "pagingType": "simple_numbers",
+        dom: "lrtip",
+        "data": data,
+        "columns": [
+            { "title": "Type",
                 "mRender": function ( data, type, full ) {
                     return typeColumn( data, type, full );
                 }
             },
-            { "sTitle": "Text" }
+            { "title": "Text" }
         ]
     });
-    $('#searchTable_filter').hide();
-    $('#searchTable_first').hide();
-    $('#searchTable_last').hide();
 }

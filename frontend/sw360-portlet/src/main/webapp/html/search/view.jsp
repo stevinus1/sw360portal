@@ -161,20 +161,18 @@
         </core_rt:forEach>
 
         $('#searchTable').dataTable({
-            "sPaginationType": "full_numbers",
-            "aaData": result,
-            "aoColumns": [
-                { "sTitle": "Type",
-                    "mRender": function ( data, type, full ) {
+            pagingType: "simple_numbers",
+            dom: "lrtip",
+            data: result,
+            columns: [
+                { "title": "Type",
+                    "render": function ( data, type, full ) {
                         return typeColumn( data, type, full );
                     }
                 },
-                { "sTitle": "Text" }
+                { "title": "Text" }
             ]
         });
-        $('#searchTable_filter').hide();
-        $('#searchTable_first').hide();
-        $('#searchTable_last').hide();
     }
 </script>
 

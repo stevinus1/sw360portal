@@ -122,7 +122,8 @@
         </core_rt:forEach>
 
         vendorsTable = $('#vendorsTable').dataTable({
-            pagingType: "full_numbers",
+            pagingType: "simple_numbers",
+            dom: "lrtip",
             data: result,
             columns: [
                 { "title": "Full Name" },
@@ -131,9 +132,6 @@
                 { "title": "Actions"}
             ]
         });
-        $('#vendorsTable_filter').hide();
-        $('#vendorsTable_first').hide();
-        $('#vendorsTable_last').hide();
     }
 
     function deleteVendor( id, name ) {

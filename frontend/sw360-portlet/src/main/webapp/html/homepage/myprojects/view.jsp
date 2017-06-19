@@ -40,19 +40,15 @@
         </core_rt:forEach>
 
         $('#myProjectsTable').dataTable({
-            pagingType: "full_numbers",
+            pagingType: "simple_numbers",
+            dom: "rtip",
             data: result,
-            "iDisplayLength": 10,
+            pageLength: 10,
             columns: [
                 {"title": "Project Name"},
                 {"title": "Description"},
             ]
         });
-
-        $('#myProjectsTable_filter').hide();
-        $('#myProjectsTable_first').hide();
-        $('#myProjectsTable_last').hide();
-        $('#myProjectsTable_length').hide();
     });
 
 </script>

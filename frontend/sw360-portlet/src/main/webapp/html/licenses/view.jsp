@@ -106,8 +106,9 @@
     </core_rt:forEach>
 
         licenseTable = $('#licensesTable').dataTable({
-            "sPaginationType": "full_numbers",
-            "iDisplayLength": 10,
+            pagingType: "simple_numbers",
+            dom: "lrtip",
+            pageLength: 10,
             "oLanguage": {
                 "sLengthMenu": 'Display <select>\
                 <option value="5">5</option>\
@@ -117,18 +118,13 @@
                 <option value="100">100</option>\
                 </select> licenses'
             },
-            "aaData": result,
-            "aoColumns": [
-                { "sTitle": "License Shortname" },
-                { "sTitle": "License Fullname" },
-                { "sTitle": "License Type" }
+            "data": result,
+            "columns": [
+                { "title": "License Shortname" },
+                { "title": "License Fullname" },
+                { "title": "License Type" }
             ]
         });
-
-        $('#licensesTable_filter').hide();
-        $('#licensesTable_first').hide();
-        $('#licensesTable_last').hide();
-
     }
 
     function useSearch(searchFieldId) {
