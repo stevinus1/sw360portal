@@ -990,4 +990,15 @@ public class ComponentDatabaseHandler {
 
         return CommonUtils.getIdentifierToListOfDuplicates(releaseIdentifierToReleaseId);
     }
+
+    public ComponentsPage getComponentSummaryPage(int start, int pageLength, User user) {
+        List<Component> allComponents = getComponentSummary(user);
+        int selectionStart = start;
+        selectionStart = selectionStart < 0 ? 0 : (selectionStart >= allComponents.size() ? allComponents.size() - 1 : selectionStart);
+        int selectionEnd = start + pageLength;
+        selectionEnd = selectionEnd < selectionStart ? selectionStart : (selectionStart > allComponents.size() ? allComponents.size() : selectionEnd);
+        List<Component> selectedPage = allComponents.subList(selectionStart, selectionEnd);
+        return new ComponentsPage(selectedPage).setTotalRows(allComponents.size()).setPageLength(pageLength).setStart(selectionStart);
+    }
+
 }

@@ -304,12 +304,26 @@ struct ReleaseLink{
     101: optional set<string> licenseNames
 }
 
+struct ComponentsPage {
+    1: optional i32 start,
+    2: optional i32 pageLength,
+    3: required list<Component> components,
+    5: optional i32 totalRows,
+}
+
+
+
 service ComponentService {
 
     /**
      * short summary of all components visible to user
      **/
     list<Component> getComponentSummary(1: User user);
+
+    /**
+     * short summary of all components visible to user
+     **/
+    ComponentsPage getComponentSummaryPage(1: i32 start, 2: i32 pageLength, 3: User user);
 
     /**
      * short summary of all releases visible to user

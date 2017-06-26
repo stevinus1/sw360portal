@@ -14,10 +14,7 @@ import org.eclipse.sw360.datahandler.db.ComponentDatabaseHandler;
 import org.eclipse.sw360.datahandler.db.ComponentSearchHandler;
 import org.eclipse.sw360.datahandler.thrift.*;
 import org.eclipse.sw360.datahandler.thrift.attachments.Attachment;
-import org.eclipse.sw360.datahandler.thrift.components.Component;
-import org.eclipse.sw360.datahandler.thrift.components.ComponentService;
-import org.eclipse.sw360.datahandler.thrift.components.Release;
-import org.eclipse.sw360.datahandler.thrift.components.ReleaseLink;
+import org.eclipse.sw360.datahandler.thrift.components.*;
 import org.eclipse.sw360.datahandler.thrift.users.User;
 import org.ektorp.http.HttpClient;
 
@@ -68,6 +65,12 @@ public class ComponentHandler implements ComponentService.Iface {
         assertUser(user);
 
         return handler.getComponentSummary(user);
+    }
+
+    @Override
+    public ComponentsPage getComponentSummaryPage(int start, int pageLength, User user) throws TException {
+        assertUser(user);
+        return handler.getComponentSummaryPage(start, pageLength, user);
     }
 
     @Override

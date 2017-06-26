@@ -9,7 +9,11 @@
  */
 package org.eclipse.sw360.portal.portlets.components;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Ordering;
+import com.google.common.net.MediaType;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.portlet.PortletResponseUtil;
@@ -42,6 +46,8 @@ import org.eclipse.sw360.portal.users.LifeRayUserSession;
 import org.eclipse.sw360.portal.users.UserCacheHolder;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
+import org.eclipse.sw360.portal.users.UserUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.portlet.*;
 import javax.servlet.http.HttpServletResponse;
@@ -53,6 +59,7 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.base.Strings.nullToEmpty;
 import static org.eclipse.sw360.datahandler.common.CommonUtils.nullToEmptyList;
+import static org.eclipse.sw360.datahandler.common.CommonUtils.nullToEmptySet;
 import static org.eclipse.sw360.datahandler.common.SW360Constants.CONTENT_TYPE_OPENXML_SPREADSHEET;
 import static org.eclipse.sw360.datahandler.common.SW360Utils.printName;
 import static org.eclipse.sw360.portal.common.PortalConstants.*;
@@ -70,6 +77,7 @@ import static org.eclipse.sw360.portal.common.PortletUtils.getVerificationState;
 public class ComponentPortlet extends FossologyAwarePortlet {
 
     private static final Logger log = Logger.getLogger(ComponentPortlet.class);
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private boolean typeIsComponent(String documentType) {
         return SW360Constants.TYPE_COMPONENT.equals(documentType);
@@ -82,10 +90,10 @@ public class ComponentPortlet extends FossologyAwarePortlet {
             ComponentService.Iface client = thriftClients.makeComponentClient();
             if (typeIsComponent(documentType)) {
                 Component component = client.getComponentById(documentId, user);
-                return CommonUtils.nullToEmptySet(component.getAttachments());
+                return nullToEmptySet(component.getAttachments());
             } else {
                 Release release = client.getReleaseById(documentId, user);
-                return CommonUtils.nullToEmptySet(release.getAttachments());
+                return nullToEmptySet(release.getAttachments());
             }
         } catch (TException e) {
             log.error("Could not get " + documentType + " attachments for " + documentId, e);
@@ -136,6 +144,8 @@ public class ComponentPortlet extends FossologyAwarePortlet {
                 updateVulnerabilityVerification(request,response);
         } else if (PortalConstants.EXPORT_TO_EXCEL.equals(action)) {
             exportExcel(request, response);
+        } else if (PortalConstants.GET_PAGINATED_COMPONENTS.equals(action)) {
+            serveGetPaginatedComponents(request, response);
         } else if (isGenericAction(action)) {
             dealWithGenericAction(request, response, action);
         }
@@ -531,8 +541,8 @@ public class ComponentPortlet extends FossologyAwarePortlet {
 
         }
 
-        request.setAttribute(USING_PROJECTS, CommonUtils.nullToEmptySet(usingProjects));
-        request.setAttribute(USING_COMPONENTS, CommonUtils.nullToEmptySet(usingComponentsForComponent));
+        request.setAttribute(USING_PROJECTS, nullToEmptySet(usingProjects));
+        request.setAttribute(USING_COMPONENTS, nullToEmptySet(usingComponentsForComponent));
     }
 
     private void prepareReleaseDetailView(RenderRequest request, RenderResponse response) throws PortletException {
@@ -677,10 +687,10 @@ public class ComponentPortlet extends FossologyAwarePortlet {
         if (releaseId != null) {
             ProjectService.Iface projectClient = thriftClients.makeProjectClient();
             Set<Project> usingProjects = projectClient.searchByReleaseId(releaseId, user);
-            request.setAttribute(USING_PROJECTS, CommonUtils.nullToEmptySet(usingProjects));
+            request.setAttribute(USING_PROJECTS, nullToEmptySet(usingProjects));
 
             final Set<Component> usingComponentsForRelease = client.getUsingComponentsForRelease(releaseId);
-            request.setAttribute(USING_COMPONENTS, CommonUtils.nullToEmptySet(usingComponentsForRelease));
+            request.setAttribute(USING_COMPONENTS, nullToEmptySet(usingComponentsForRelease));
         } else {
             request.setAttribute(USING_PROJECTS, Collections.emptySet());
             request.setAttribute(USING_COMPONENTS, Collections.emptySet());
@@ -704,7 +714,7 @@ public class ComponentPortlet extends FossologyAwarePortlet {
     }
 
     private void prepareStandardView(RenderRequest request) throws IOException {
-        List<Component> componentList = getFilteredComponentList(request);
+//        List<Component> componentList = getFilteredComponentList(request);
 
         Set<String> vendorNames;
 
@@ -721,7 +731,7 @@ public class ComponentPortlet extends FossologyAwarePortlet {
                 .collect(Collectors.toList());
 
         request.setAttribute(VENDOR_LIST, new ThriftJsonSerializer().toJson(vendorNames));
-        request.setAttribute(COMPONENT_LIST, componentList);
+//        request.setAttribute(COMPONENT_LIST, componentList);
         request.setAttribute(COMPONENT_TYPE_LIST, new ThriftJsonSerializer().toJson(componentTypeNames));
 
     }
@@ -758,6 +768,61 @@ public class ComponentPortlet extends FossologyAwarePortlet {
         }
         return componentList;
     }
+
+    private void serveGetPaginatedComponents(ResourceRequest request, ResourceResponse response) throws IOException {
+        int draw = Integer.parseInt(request.getParameter("draw"));
+        int pageLength = Integer.parseInt(request.getParameter("length"));
+        int start = Integer.parseInt(request.getParameter("start"));
+        User user = UserCacheHolder.getUserFromRequest(request);
+        ComponentService.Iface componentClient = thriftClients.makeComponentClient();
+
+        try {
+            ComponentsPage componentsPage = componentClient.getComponentSummaryPage(start, pageLength, user);
+            List<ImmutableMap<Object, Object>> componentsData = componentsPage
+                    .getComponents()
+                    .stream()
+                    .map(c -> ImmutableMap
+                            .builder()
+                            .put("DT_RowId", c.getId())
+                            .put("id", c.getId())
+                            .put("vendorNames", sortedCollectionString(c.getVendorNames()))
+//                    "1": "<a href='" + createDetailURLfromComponentId("${component.id}") + "' target='_self'><sw360:out value="${component.name}"/></a>",
+//                    "2": "<tags:TrimLineBreaks input="${licenseCollectionTagOutput}"/>",
+//                    "3": '<sw360:DisplayEnum value="${component.componentType}"/>',
+//                    "4": "<a href='<portlet:renderURL ><portlet:param name="<%=PortalConstants.COMPONENT_ID%>" value="${component.id}"/><portlet:param name="<%=PortalConstants.PAGENAME%>" value="<%=PortalConstants.PAGENAME_EDIT%>"/></portlet:renderURL>'><img src='<%=request.getContextPath()%>/images/edit.png' alt='Edit' title='Edit'> </a>"
+//                    + "<img src='<%=request.getContextPath()%>/images/Trash.png' onclick=\"deleteComponent('${component.id}', '<b>${component.name}</b>',${component.releaseIdsSize},${component.attachmentsSize})\"  alt='Delete' title='Delete'>"
+                            .put("name", SW360Utils.printName(c))
+                            .put("mainLicenses", sortedCollectionString(c.getMainLicenseIds()))
+                            .put("compType", ThriftEnumUtils.enumToString(c.getComponentType()))
+                            .put("linkedReleasesSize", Integer.toString(c.getReleaseIdsSize()))
+                            .put("attachmentsSize", Integer.toString(c.getAttachmentsSize()))
+                            .build())
+                    .collect(Collectors.toList());
+
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("draw", draw);
+            responseData.put("data", componentsData);
+            responseData.put("recordsTotal", componentsPage.getTotalRows());
+            responseData.put("recordsFiltered", componentsPage.getTotalRows());
+
+            String json = MAPPER.writeValueAsString(responseData);
+            PortletResponseUtil.sendFile(request, response, "filename.json", json.getBytes(), MediaType.JSON_UTF_8
+                    .withoutParameters()
+                    .toString());
+        } catch (TException e) {
+            log.error("Error getting paginated projects", e);
+            response.setProperty(ResourceResponse.HTTP_STATUS_CODE, Integer.toString(HttpServletResponse.SC_INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @NotNull
+    private String sortedCollectionString(Collection<String> strings) {
+        if (null == strings) {
+            return "";
+        }
+        return CommonUtils.COMMA_JOINER.join(Ordering.from(String.CASE_INSENSITIVE_ORDER).sortedCopy(strings));
+    }
+
 
     //! Actions
     @UsedAsLiferayAction

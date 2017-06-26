@@ -22,8 +22,8 @@
 <portlet:defineObjects/>
 <liferay-theme:defineObjects/>
 
-<jsp:useBean id="componentList" type="java.util.List<org.eclipse.sw360.datahandler.thrift.components.Component>"
-             scope="request"/>
+<%--<jsp:useBean id="componentList" type="java.util.List<org.eclipse.sw360.datahandler.thrift.components.Component>"--%>
+             <%--scope="request"/>--%>
 
 <jsp:useBean id="categories" class="java.lang.String" scope="request"/>
 <jsp:useBean id="languages" class="java.lang.String" scope="request"/>
@@ -47,6 +47,10 @@
     <portlet:param name="<%=PortalConstants.ACTION%>" value='<%=PortalConstants.DELETE_COMPONENT%>'/>
 </portlet:resourceURL>
 
+<portlet:resourceURL var="paginatedComponentsURL">
+    <portlet:param name="<%=PortalConstants.ACTION%>" value='<%=PortalConstants.GET_PAGINATED_COMPONENTS%>'/>
+</portlet:resourceURL>
+
 <portlet:actionURL var="applyFiltersURL" name="applyFilters">
 </portlet:actionURL>
 
@@ -62,7 +66,8 @@
 
 <div id="header"></div>
 <p class="pageHeader">
-    <span class="pageHeaderBigSpan">Components</span> <span class="pageHeaderSmallSpan">(${componentList.size()})</span>
+    <span class="pageHeaderBigSpan">Components</span>
+    <%--<span class="pageHeaderSmallSpan">(${componentList.size()})</span>--%>
     <span class="pull-right">
           <input type="button" class="addButton" onclick="window.location.href='<%=addComponentURL%>'"
                 value="Add Component">
@@ -245,34 +250,60 @@
 
     function createComponentsTable() {
 
-        var result = [];
-
-        <core_rt:forEach items="${componentList}" var="component">
-        <core_rt:set var="licenseCollectionTagOutput"><tags:DisplayLicenseCollection licenseIds="${component.mainLicenseIds}" scopeGroupId="${pageContext.getAttribute('scopeGroupId')}"/></core_rt:set>
-        result.push({
-            "DT_RowId": "${component.id}",
-            "0": '<sw360:DisplayCollection value="${component.vendorNames}"/>',
-            "1": "<a href='" + createDetailURLfromComponentId("${component.id}") + "' target='_self'><sw360:out value="${component.name}"/></a>",
-            "2": "<tags:TrimLineBreaks input="${licenseCollectionTagOutput}"/>",
-            "3": '<sw360:DisplayEnum value="${component.componentType}"/>',
-            "4": "<a href='<portlet:renderURL ><portlet:param name="<%=PortalConstants.COMPONENT_ID%>" value="${component.id}"/><portlet:param name="<%=PortalConstants.PAGENAME%>" value="<%=PortalConstants.PAGENAME_EDIT%>"/></portlet:renderURL>'><img src='<%=request.getContextPath()%>/images/edit.png' alt='Edit' title='Edit'> </a>"
-            + "<img src='<%=request.getContextPath()%>/images/Trash.png' onclick=\"deleteComponent('${component.id}', '<b>${component.name}</b>',${component.releaseIdsSize},${component.attachmentsSize})\"  alt='Delete' title='Delete'>"
-        });
-        </core_rt:forEach>
-
         componentsTable = $('#componentsTable').DataTable({
+            serverSide: true,
+            search: {smart: false},
+            ordering: false,
             "pagingType": "simple_numbers",
             dom: "lrtip",
             "pageLength": 25,
-            "data": result,
+            ajax: {
+                url: "${paginatedComponentsURL}",
+                type: "POST",
+                data: function (d) {
+                    var props = ["draw", "start", "length", "search", "order"];
+                    for (var i = 0; i < props.length; i++){
+                        var prop = props[i];
+                        d["<portlet:namespace/>" + prop] = d[prop];
+                        delete d[prop];
+                    }
+                    delete d["columns"];
+                },
+            },
             "columns": [
-                {"title": "Vendor"},
-                {"title": "Component Name"},
-                {"title": "Main Licenses"},
-                {"title": "Component Type"},
-                {"title": "Actions"}
+                {"title": "Vendor", data: "vendorNames"},
+                {"title": "Component Name", data: "name", render: {display: renderComponentNameLink}},
+                {"title": "Main Licenses", data: "mainLicenses"},
+                {"title": "Component Type", data: "compType"},
+                {"title": "Actions", data: "id", render: {display: renderComponentActions}}
             ]
         });
+    }
+
+    function renderComponentActions(id, type, row) {
+        <%--TODO most of this can be simplified to CSS properties --%>
+        return "<span id='componentAction" + id + "'></span>"
+            + renderLinkTo(
+                makeComponentUrl(id, '<%=PortalConstants.PAGENAME_EDIT%>'),
+                "",
+                "<img src='<%=request.getContextPath()%>/images/edit.png' alt='Edit' title='Edit'>")
+            + renderLinkTo(
+                makeComponentUrl(id, '<%=PortalConstants.PAGENAME_DUPLICATE%>'),
+                "",
+                "<img src='<%=request.getContextPath()%>/images/ic_clone.png' alt='Duplicate' title='Duplicate'>")
+            + "<img src='<%=request.getContextPath()%>/images/Trash.png'" +
+            " onclick=\"deleteComponent('" + id + "', '<b>" + replaceSingleQuote(row.name) + "</b>'," + replaceSingleQuote(row.linkedReleasesSize) + "," + replaceSingleQuote(row.attachmentsSize) + ")\" alt='Delete' title='Delete'/>";
+    }
+
+    function renderComponentNameLink(name, type, row) {
+        return renderLinkTo(makeComponentUrl(row.id, '<%=PortalConstants.PAGENAME_DETAIL%>'), name);
+    }
+
+    function makeComponentUrl(componentId, page) {
+        var portletURL = PortletURL.createURL('<%= PortletURLFactoryUtil.create(request, portletDisplay.getId(), themeDisplay.getPlid(), PortletRequest.RENDER_PHASE) %>')
+            .setParameter('<%=PortalConstants.PAGENAME%>', page)
+            .setParameter('<%=PortalConstants.COMPONENT_ID%>', componentId);
+        return portletURL.toString();
     }
 
     function deleteComponent(id, name, numberOfReleases, attachmentsSize) {

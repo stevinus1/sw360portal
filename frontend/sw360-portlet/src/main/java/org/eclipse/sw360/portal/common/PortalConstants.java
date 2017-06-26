@@ -91,6 +91,7 @@ public class PortalConstants {
     public static final String COMPONENT_TYPE_LIST = "componentTypeList";
     public static final String COMPONENT_CATEGORIES;
     public static final String COMPONENT_ROLES;
+    public static final String GET_PAGINATED_COMPONENTS = "getPaginatedComponents";
 
     //! Specialized keys for releases
     public static final String RELEASE_ID = "releaseId";
