@@ -61,8 +61,8 @@ function createLicenseTable(data) {
         pagingType: "simple_numbers",
         dom: "lrtip",
         pageLength: 10,
-        "oLanguage": {
-            "sLengthMenu": 'Display <select>\
+        "language": {
+            "lengthMenu": 'Display <select>\
                 <option value="5">5</option>\
                 <option value="10">10</option>\
                 <option value="20">20</option>\
@@ -78,8 +78,4 @@ function createLicenseTable(data) {
         ]
     });
 
-}
-
-function licenseSearch(searchFieldId) {
-    licensesTable.fnFilter( $('#'+searchFieldId).val());
 }

@@ -79,7 +79,7 @@
         <thead>
         <tr>
             <th class="infoheading">
-                Display Filter by Name
+                Quick Filter
             </th>
         </tr>
         </thead>
@@ -88,9 +88,6 @@
             <td>
                 <input type="text" class="searchbar"
                        id="keywordsearchinput" value="" onkeyup="useSearch('keywordsearchinput')" />
-                <br/>
-                <input type="button" class="searchbutton"
-                       name="searchBtn" value="Search" onclick="useSearch('keywordsearchinput')" />
             </td>
         </tr>
         </tbody>
@@ -101,7 +98,7 @@
             <thead>
             <tr>
                 <th class="infoheading">
-                    Filters
+                    Advanced Search
                 </th>
             </tr>
             </thead>
@@ -130,8 +127,7 @@
             <tr>
                 <td>
                     <label for="group">Group</label>
-                    <select class="searchbar toplabelledInput filterInput" id="group" name="<portlet:namespace/><%=Project._Fields.BUSINESS_UNIT%>"
-                            style="min-height: 28px;">
+                    <select class="searchbar toplabelledInput filterInput" id="group" name="<portlet:namespace/><%=Project._Fields.BUSINESS_UNIT%>">
                         <option value="" class="textlabel stackedLabel"
                                 <core_rt:if test="${empty businessUnit}"> selected="selected"</core_rt:if>
                         ></option>
@@ -161,7 +157,7 @@
             </tbody>
         </table>
         <br/>
-        <input type="submit" class="addButton" value="Apply Filters">
+        <input type="submit" class="addButton" value="Search">
     </form>
 </div>
 <div id="projectsTableDiv" class="content2">
@@ -219,9 +215,8 @@
     });
 
     function useSearch(buttonId) {
-        <%-- we only want to search names starting with the value in the search box--%>
         var val = $.fn.dataTable.util.escapeRegex($('#' + buttonId).val());
-        projectsTable.columns(0).search('^' + val, true).draw();
+        projectsTable.columns(0).search(val, true).draw();
     }
 
     function makeProjectUrl(projectId, page) {

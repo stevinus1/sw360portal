@@ -157,11 +157,6 @@ public class ComponentDatabaseHandler {
         return releases;
     }
 
-    public List<Component> getRecentComponents() {
-        return componentRepository.getRecentComponents();
-    }
-
-
     public List<Release> getRecentReleases() {
         return releaseRepository.getRecentReleases();
     }
@@ -989,5 +984,13 @@ public class ComponentDatabaseHandler {
         }
 
         return CommonUtils.getIdentifierToListOfDuplicates(releaseIdentifierToReleaseId);
+    }
+
+    public List<Component> getRecentComponentsSummary(int limit, User user) {
+        return componentRepository.getRecentComponentsSummary(limit, user);
+    }
+
+    public int getTotalComponentsCount() {
+        return componentRepository.getTotalComponentsCount();
     }
 }

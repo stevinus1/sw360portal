@@ -10,6 +10,7 @@
 package org.eclipse.sw360.portal.portlets.components;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.portlet.PortletResponseUtil;
@@ -38,6 +39,7 @@ import org.eclipse.sw360.datahandler.thrift.vulnerabilities.VulnerabilityService
 import org.eclipse.sw360.exporter.ComponentExporter;
 import org.eclipse.sw360.portal.common.*;
 import org.eclipse.sw360.portal.portlets.FossologyAwarePortlet;
+import org.eclipse.sw360.portal.portlets.projects.ProjectPortletUtils;
 import org.eclipse.sw360.portal.users.LifeRayUserSession;
 import org.eclipse.sw360.portal.users.UserCacheHolder;
 import org.apache.log4j.Logger;
@@ -52,6 +54,7 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.base.Strings.nullToEmpty;
+import static org.eclipse.sw360.datahandler.common.CommonUtils.isNullEmptyOrWhitespace;
 import static org.eclipse.sw360.datahandler.common.CommonUtils.nullToEmptyList;
 import static org.eclipse.sw360.datahandler.common.CommonUtils.nullToEmptyMap;
 import static org.eclipse.sw360.datahandler.common.CommonUtils.nullToEmptySet;
@@ -747,10 +750,12 @@ public class ComponentPortlet extends FossologyAwarePortlet {
 
         try {
             final User user = UserCacheHolder.getUserFromRequest(request);
+            int limit = loadAndStoreStickyViewSize(request, user);
             ComponentService.Iface componentClient = thriftClients.makeComponentClient();
+            request.setAttribute(PortalConstants.TOTAL_ROWS, componentClient.getTotalComponentsCount(user));
 
             if (filterMap.isEmpty()) {
-                componentList = componentClient.getComponentSummary(user);
+                componentList = componentClient.getRecentComponentsSummary(limit, user);
             } else {
                 componentList = componentClient.refineSearch(null, filterMap);
             }
@@ -759,6 +764,19 @@ public class ComponentPortlet extends FossologyAwarePortlet {
             componentList = Collections.emptyList();
         }
         return componentList;
+    }
+
+    private int loadAndStoreStickyViewSize(PortletRequest request, User user) {
+        String view_size = request.getParameter(PortalConstants.VIEW_SIZE);
+        final int limit;
+        if (isNullEmptyOrWhitespace(view_size)){
+            limit = ComponentPortletUtils.loadStickyViewSize(request, user);
+        } else {
+            limit = Integer.parseInt(view_size);
+            ComponentPortletUtils.saveStickyViewSize(request, user, limit);
+        }
+        request.setAttribute(PortalConstants.VIEW_SIZE, limit);
+        return limit;
     }
 
     //! Actions

@@ -33,7 +33,7 @@
         <thead>
         <tr>
             <th class="infoheading">
-                Display Filter
+                Quick Filter
             </th>
         </tr>
         </thead>
@@ -42,9 +42,6 @@
             <td>
                 <input type="text" style="width: 90%; padding: 5px; color: gray;height:20px;"
                        id="keywordsearchinput" value="" onkeyup="useSearch('keywordsearchinput')">
-                <br/>
-                <input style="padding: 5px 20px 5px 20px; border: none; font-weight:bold;" type="button"
-                       name="searchBtn" value="Search" onclick="useSearch('keywordsearchinput')">
             </td>
         </tr>
         </tbody>
@@ -175,10 +172,10 @@
         usersMissingTable = setupPagination('#userMissingTable');
     }
 
-    function setupPagination(tableId){
+    function setupPagination(tableSelector){
         var tbl;
-        if ($(tableId)){
-            tbl = $(tableId).dataTable({
+        if ($(tableSelector)){
+            tbl = $(tableSelector).DataTable({
                 "pagingType": "simple_numbers",
                 dom: "lrtip"
             });
@@ -187,8 +184,9 @@
     }
 
     function useSearch( buttonId) {
-        usersTable.fnFilter( $('#'+buttonId).val());
-        usersMissingTable.fnFilter( $('#'+buttonId).val());
+        var searchText = $('#'+buttonId).val();
+        usersTable.search(searchText).draw();
+        usersMissingTable.search(searchText).draw();
     }
 </script>
 
